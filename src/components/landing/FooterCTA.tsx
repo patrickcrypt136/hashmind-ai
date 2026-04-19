@@ -16,7 +16,7 @@ export default function FooterCTA() {
         <div className="absolute inset-0 bg-gradient-radial from-[#FF0033]/10 to-transparent pointer-events-none" />
         <Zap className="w-10 h-10 text-[#FF0033] mx-auto mb-6" />
         <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-          Start Winning With HashMind AI Today
+          Start Winning With HashGenius AI Today
         </h2>
         <p className="text-gray-400 mb-8">
           Join thousands of Club HashCash players already using AI to maximize
@@ -33,7 +33,7 @@ export default function FooterCTA() {
       <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-[#1F1F1F] flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-[#FF0033]" />
-          <span>HashMind AI</span>
+          <span>HashGenius AI</span>
         </div>
         <span>© 2026 HashGenius. Built for Club HashCash players.</span>
       </div>

@@ -18,7 +18,7 @@ export default function Navbar() {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-lg tracking-tight">
-              HashMind <span className="text-[#FF0033]">AI</span>
+              HashGenius <span className="text-[#FF0033]">AI</span>
             </span>
           </Link>
 
