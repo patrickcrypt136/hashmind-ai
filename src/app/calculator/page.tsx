@@ -91,7 +91,7 @@ export default function CalculatorPage() {
   return (
     <div className="flex min-h-screen bg-[#0A0A0A]">
       <Sidebar />
-      <main className="flex-1 ml-60 p-8">
+     <main className="flex-1 md:ml-60 p-4 md:p-8 pt-16 md:pt-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">ROI Calculator</h1>

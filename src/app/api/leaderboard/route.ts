@@ -3,9 +3,12 @@ import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const { address, balance, dailyReward, score } = await req.json();
+    const body = await req.json();
+    console.log("Leaderboard POST received:", body);
+    const { address, balance, dailyReward, score } = body;
 
     if (!address) {
+      console.log("No address provided");
       return NextResponse.json({ error: "No address" }, { status: 400 });
     }
 
@@ -23,7 +26,6 @@ export async function POST(req: NextRequest) {
       const lastSeen = new Date(existing.last_seen);
       const hoursDiff = (now.getTime() - lastSeen.getTime()) / (1000 * 60 * 60);
 
-      // Increment streak if last seen within 48 hours
       if (hoursDiff < 48) {
         streak = existing.streak + 1;
       }

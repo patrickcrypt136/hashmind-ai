@@ -11,9 +11,9 @@ export default function DashboardPage() {
   return (
     <div className="flex min-h-screen bg-[#0A0A0A]">
       <Sidebar />
-      <main className="flex-1 ml-60 p-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+      <main className="flex-1 md:ml-60 p-4 md:p-8 pt-16 md:pt-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl md:text-2xl font-bold text-white">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">
             Welcome back. Here&apos;s your mining performance overview.
           </p>
@@ -24,11 +24,11 @@ export default function DashboardPage() {
         <div className="mb-6">
           <StrategyScore />
         </div>
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <RewardChart />
           <ROIChart />
         </div>
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <MinerPortfolio />
           <Recommendations />
         </div>
