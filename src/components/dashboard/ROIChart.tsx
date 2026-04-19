@@ -8,8 +8,44 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useAccount, useReadContract } from "wagmi";
+import { formatUnits } from "viem";
 
-const roiData = [
+const HCASH_CONTRACT = "0xBa5444409257967E5E50b113C395A766B0678C03";
+const ERC20_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+] as const;
+
+const DAILY_RATE = 0.014; // 1.4% daily reward rate
+const REINVEST_RATE = 0.3; // 30% reinvestment
+
+function generateROIData(balance: number) {
+  const weeks = ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"];
+  let current = balance;
+  const initialBalance = balance || 100;
+
+  return weeks.map((week, i) => {
+    const weeklyReward = current * DAILY_RATE * 7;
+    current += weeklyReward * REINVEST_RATE;
+    const roi = Math.round(((current - initialBalance) / initialBalance) * 100);
+    return { week, roi: Math.max(0, roi) };
+  });
+}
+
+const mockROIData = [
   { week: "W1", roi: 12 },
   { week: "W2", roi: 19 },
   { week: "W3", roi: 28 },
@@ -21,10 +57,40 @@ const roiData = [
 ];
 
 export default function ROIChart() {
+  const { address, isConnected } = useAccount();
+
+  const { data: balance } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
+
+  const { data: decimals } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "decimals",
+    query: { enabled: !!address },
+  });
+
+  const realBalance =
+    balance && decimals
+      ? parseFloat(formatUnits(balance, decimals))
+      : 0;
+
+  const roiData = isConnected
+    ? generateROIData(realBalance)
+    : mockROIData;
+
   return (
     <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-6">
       <h3 className="font-semibold text-white mb-1">ROI Forecast</h3>
-      <p className="text-xs text-gray-500 mb-6">Projected return over 8 weeks</p>
+      <p className="text-xs text-gray-500 mb-6">
+        {isConnected
+          ? `Projected 8-week return based on ${realBalance.toFixed(2)} hCASH`
+          : "Projected return over 8 weeks"}
+      </p>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={roiData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1F1F1F" />

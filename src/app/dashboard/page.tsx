@@ -22,7 +22,7 @@ export default function DashboardPage() {
           <StatsCards />
         </div>
         <div className="mb-6">
-          <StrategyScore score={87} />
+          <StrategyScore />
         </div>
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           <RewardChart />
