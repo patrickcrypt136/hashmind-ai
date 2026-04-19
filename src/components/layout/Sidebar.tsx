@@ -3,7 +3,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Brain, Calculator, Trophy, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
+import { formatUnits } from "viem";
+
+const HCASH_CONTRACT = "0xBa5444409257967E5E50b113C395A766B0678C03";
+
+const ERC20_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+] as const;
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -16,9 +36,29 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
 
+  const { data: balance } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
+
+  const { data: decimals } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "decimals",
+    query: { enabled: !!address },
+  });
+
+  const formattedBalance =
+    balance && decimals
+      ? parseFloat(formatUnits(balance, decimals)).toFixed(2)
+      : "—";
+
   const shortAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
-    : "0x1A2b...9F3c";
+    : "Not connected";
 
   return (
     <aside className="fixed left-0 top-0 h-full w-60 border-r border-[#1F1F1F] bg-[#0A0A0A] flex flex-col z-40">
@@ -60,11 +100,13 @@ export default function Sidebar() {
           <div className="flex items-center gap-1.5 mb-1">
             <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-green-400" : "bg-gray-600"}`} />
             <div className="text-xs text-gray-500">
-              {isConnected ? "Connected" : "Not Connected"}
+              {isConnected ? "Connected • Avalanche" : "Not Connected"}
             </div>
           </div>
           <div className="text-xs font-mono text-gray-300">{shortAddress}</div>
-          <div className="text-xs text-[#FF0033] font-semibold mt-1">245 hCASH</div>
+          <div className="text-xs text-[#FF0033] font-semibold mt-1">
+            {formattedBalance} hCASH
+          </div>
         </div>
       </div>
     </aside>

@@ -1,14 +1,54 @@
 "use client";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useReadContract } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { Wallet, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { formatUnits } from "viem";
+
+const HCASH_CONTRACT = "0xBa5444409257967E5E50b113C395A766B0678C03";
+
+const ERC20_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+] as const;
 
 export default function WalletButton() {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
   const [showMenu, setShowMenu] = useState(false);
+
+  const { data: balance } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
+
+  const { data: decimals } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "decimals",
+    query: { enabled: !!address },
+  });
+
+  const formattedBalance =
+    balance && decimals
+      ? parseFloat(formatUnits(balance, decimals)).toFixed(2)
+      : "0.00";
 
   const shortAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -23,6 +63,7 @@ export default function WalletButton() {
         >
           <div className="w-2 h-2 rounded-full bg-green-400" />
           {shortAddress}
+          <span className="text-[#FF0033] font-semibold">{formattedBalance} hCASH</span>
           <ChevronDown className="w-3 h-3" />
         </button>
 
