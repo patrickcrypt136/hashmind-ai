@@ -70,7 +70,7 @@ export default function Sidebar() {
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="font-bold text-sm tracking-tight">
-            HashMind <span className="text-[#FF0033]">AI</span>
+            HashGenius <span className="text-[#FF0033]">AI</span>
           </span>
         </div>
         <button
@@ -131,7 +131,7 @@ export default function Sidebar() {
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
           <span className="font-bold text-sm tracking-tight">
-            HashMind <span className="text-[#FF0033]">AI</span>
+            HashGenius <span className="text-[#FF0033]">AI</span>
           </span>
         </div>
         <button

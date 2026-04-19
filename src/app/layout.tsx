@@ -6,7 +6,7 @@ import Providers from "@/components/layout/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "HashMind AI — Mine Smarter. Earn Faster.",
+  title: "HashGenius — Mine Smarter. Earn Faster.",
   description: "AI-powered strategy assistant for Club HashCash players.",
 };
 
