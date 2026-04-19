@@ -49,7 +49,7 @@ export default function Features() {
           <span className="text-[#FF0033]">Dominate</span>
         </h2>
         <p className="text-gray-400 max-w-xl mx-auto">
-          HashMind AI combines real-time analytics, AI strategy, and wallet
+          HashGenius combines real-time analytics, AI strategy, and wallet
           intelligence into one powerful platform.
         </p>
       </motion.div>
