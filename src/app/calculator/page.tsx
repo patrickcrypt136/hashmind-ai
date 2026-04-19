@@ -1,8 +1,28 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Sidebar from "@/components/layout/Sidebar";
 import { Calculator, TrendingUp, Zap, ArrowRight } from "lucide-react";
+import { useAccount, useReadContract } from "wagmi";
+import { formatUnits } from "viem";
+
+const HCASH_CONTRACT = "0xBa5444409257967E5E50b113C395A766B0678C03";
+const ERC20_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+] as const;
 
 type Results = {
   breakEvenDays: number;
@@ -13,32 +33,59 @@ type Results = {
 };
 
 export default function CalculatorPage() {
+  const { address } = useAccount();
   const [miners, setMiners] = useState(3);
   const [dailyReward, setDailyReward] = useState(3.4);
   const [upgradeCost, setUpgradeCost] = useState(22);
   const [referrals, setReferrals] = useState(2);
   const [results, setResults] = useState<Results | null>(null);
 
-  const calculate = () => {
-    const referralBonus = referrals * 0.3;
-    const totalDaily = dailyReward + referralBonus;
-    const breakEvenDays = Math.ceil(upgradeCost / totalDaily);
-    const monthlyReward = totalDaily * 30;
-    const yearlyReward = totalDaily * 365;
-    const roi = Math.round(((yearlyReward - upgradeCost) / upgradeCost) * 100);
+  const { data: balance } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
 
-    let bestAction = "";
-    if (breakEvenDays < 10) {
-      bestAction = "Upgrade immediately — excellent ROI with fast break-even.";
-    } else if (breakEvenDays < 20) {
-      bestAction = "Upgrade after adding 1-2 more referrals to reduce break-even time.";
-    } else if (referrals < 3) {
-      bestAction = "Focus on referrals first — you need more daily income before upgrading.";
-    } else {
-      bestAction = "Reinvest 30% of rewards and wait 2 weeks before upgrading.";
+  const { data: decimals } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "decimals",
+    query: { enabled: !!address },
+  });
+
+  // Pre-fill daily reward based on real balance
+  useEffect(() => {
+    if (balance && decimals) {
+      const realBalance = parseFloat(formatUnits(balance, decimals));
+      const estimatedDailyReward = parseFloat((realBalance * 0.014).toFixed(2));
+      if (estimatedDailyReward > 0) {
+        setDailyReward(estimatedDailyReward);
+      }
     }
+  }, [balance, decimals]);
 
-    setResults({ breakEvenDays, monthlyReward, yearlyReward, bestAction, roi });
+  const calculate = () => {
+    const totalDailyReward = dailyReward * miners + referrals * 0.5;
+    const monthlyReward = totalDailyReward * 30;
+    const yearlyReward = totalDailyReward * 365;
+    const breakEvenDays = totalDailyReward > 0 ? Math.ceil(upgradeCost / totalDailyReward) : 0;
+    const roi =
+      upgradeCost > 0
+        ? parseFloat(((yearlyReward / upgradeCost) * 100).toFixed(1))
+        : 0;
+
+    setResults({
+      breakEvenDays,
+      monthlyReward,
+      yearlyReward,
+      bestAction:
+        totalDailyReward < 5
+          ? "Consider upgrading your miners or increasing referrals."
+          : "Keep mining and reinvest rewards for better ROI.",
+      roi,
+    });
   };
 
   return (
