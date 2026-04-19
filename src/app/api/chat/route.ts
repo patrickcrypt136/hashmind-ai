@@ -7,7 +7,10 @@ const groq = new Groq({
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, history, walletData } = await req.json();
+    const body = await req.json();
+console.log("Request body keys:", Object.keys(body));
+console.log("GROQ_API_KEY exists:", !!process.env.GROQ_API_KEY);
+const { message, history, walletData } = body;
 
     const SYSTEM_PROMPT = `You are HashMind AI, an expert strategy assistant for Club HashCash players.
 You help players maximize their mining rewards, referrals, upgrades, and ROI.
@@ -34,7 +37,7 @@ If balance is 0, advise them on how to get started with hCASH.`;
     ];
 
     const completion = await groq.chat.completions.create({
-      model: "llama3-8b-8192",
+      model: "llama-3.3-70b-versatile",
       messages,
       max_tokens: 512,
       temperature: 0.7,
