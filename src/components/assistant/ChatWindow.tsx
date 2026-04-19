@@ -1,7 +1,27 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, User, Loader2, Zap } from "lucide-react";
+import { Send, Zap, User, Loader2 } from "lucide-react";
+import { useAccount, useReadContract } from "wagmi";
+import { formatUnits } from "viem";
+
+const HCASH_CONTRACT = "0xBa5444409257967E5E50b113C395A766B0678C03";
+const ERC20_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+] as const;
 
 type Message = {
   id: string;
@@ -19,12 +39,41 @@ const suggestions = [
 ];
 
 export default function ChatWindow() {
+  const { address, isConnected } = useAccount();
+
+  const { data: balance } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
+
+  const { data: decimals } = useReadContract({
+    address: HCASH_CONTRACT,
+    abi: ERC20_ABI,
+    functionName: "decimals",
+    query: { enabled: !!address },
+  });
+
+  const realBalance =
+    balance && decimals
+      ? parseFloat(formatUnits(balance, decimals))
+      : 0;
+
+  const dailyReward = parseFloat((realBalance * 0.014).toFixed(2));
+  const referralEarnings = parseFloat((realBalance * 0.003).toFixed(2));
+  const strategyScore = isConnected
+    ? Math.min(99, Math.floor(50 + realBalance / 10))
+    : 0;
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
-      content:
-        "Hey! I'm HashMind AI. I've analyzed your mining portfolio and I'm ready to help you maximize your rewards. What would you like to optimize today?",
+      content: isConnected
+        ? `Hey! I'm HashMind AI. I can see your wallet has ${realBalance.toFixed(2)} hCASH. I'm ready to help you maximize your mining strategy. What would you like to optimize?`
+        : "Hey! I'm HashMind AI. Connect your wallet so I can give you personalized mining strategy advice. What would you like to know?",
       timestamp: new Date(),
     },
   ]);
@@ -60,7 +109,17 @@ export default function ChatWindow() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: messageText, history }),
+        body: JSON.stringify({
+          message: messageText,
+          history,
+          walletData: {
+            address: address || "Not connected",
+            balance: realBalance.toFixed(2),
+            dailyReward,
+            referralEarnings,
+            strategyScore,
+          },
+        }),
       });
 
       const data = await res.json();
@@ -91,17 +150,25 @@ export default function ChatWindow() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] rounded-xl border border-[#1F1F1F] bg-[#111111] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-[#1F1F1F] bg-[#0A0A0A]">
-        <div className="w-9 h-9 rounded-lg bg-[#FF0033] flex items-center justify-center shadow-neon">
-          <Brain className="w-4 h-4 text-white" />
-        </div>
-        <div>
-          <div className="font-semibold text-white text-sm">HashMind AI</div>
-          <div className="flex items-center gap-1 text-xs text-green-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-             Online — Groq LLaMA 3.3
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[#1F1F1F] bg-[#0A0A0A]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#FF0033] flex items-center justify-center shadow-neon">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="font-semibold text-white text-sm">HashMind AI</div>
+            <div className="flex items-center gap-1 text-xs text-green-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Online — Groq LLaMA 3
+            </div>
           </div>
         </div>
+        {isConnected && (
+          <div className="text-xs text-gray-500 text-right">
+            <div className="text-gray-300 font-semibold">{realBalance.toFixed(2)} hCASH</div>
+            <div>live balance</div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -115,7 +182,6 @@ export default function ChatWindow() {
               transition={{ duration: 0.3 }}
               className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
             >
-              {/* Avatar */}
               <div
                 className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                   msg.role === "assistant"
@@ -129,8 +195,6 @@ export default function ChatWindow() {
                   <User className="w-4 h-4" />
                 )}
               </div>
-
-              {/* Bubble */}
               <div
                 className={`max-w-[75%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
                   msg.role === "assistant"
@@ -143,7 +207,6 @@ export default function ChatWindow() {
             </motion.div>
           ))}
 
-          {/* Loading bubble */}
           {loading && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}

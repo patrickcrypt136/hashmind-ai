@@ -5,27 +5,24 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const SYSTEM_PROMPT = `You are HashMind AI, an expert strategy assistant for Club HashCash players.
-You help players maximize their mining rewards, referrals, upgrades, and ROI.
-
-The user has these miners:
-- Miner Alpha: Level 2, earns 1.2 hCASH/day, upgrade costs 15 hCASH
-- Miner Titan: Level 3, earns 1.5 hCASH/day, upgrade costs 22 hCASH
-- Miner Nano: Level 1, earns 0.7 hCASH/day, upgrade costs 8 hCASH
-
-Wallet balance: 245 hCASH
-Daily rewards: 3.4 hCASH
-Referral earnings: 0.8 hCASH/day
-
-Always give confident, specific, data-driven advice. Keep responses concise and actionable.
-Use numbers and percentages. Never be vague. Format with short paragraphs, no markdown headers.`;
-
 export async function POST(req: NextRequest) {
   try {
-    const { message, history } = await req.json();
+    const { message, history, walletData } = await req.json();
 
-    console.log("GROQ_API_KEY exists:", !!process.env.GROQ_API_KEY);
-    console.log("Message received:", message);
+    const SYSTEM_PROMPT = `You are HashMind AI, an expert strategy assistant for Club HashCash players.
+You help players maximize their mining rewards, referrals, upgrades, and ROI.
+
+Current player data:
+- Wallet address: ${walletData?.address || "Not connected"}
+- hCASH Balance: ${walletData?.balance || 0} hCASH
+- Estimated daily reward: ${walletData?.dailyReward || 0} hCASH/day
+- Estimated referral earnings: ${walletData?.referralEarnings || 0} hCASH/day
+- Strategy score: ${walletData?.strategyScore || 0}/100
+
+Always give confident, specific, data-driven advice based on the player's REAL balance above.
+Keep responses concise and actionable. Use numbers and percentages.
+Never be vague. Format with short paragraphs, no markdown headers.
+If balance is 0, advise them on how to get started with hCASH.`;
 
     const messages = [
       { role: "system" as const, content: SYSTEM_PROMPT },
@@ -37,15 +34,13 @@ export async function POST(req: NextRequest) {
     ];
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "llama3-8b-8192",
       messages,
       max_tokens: 512,
       temperature: 0.7,
     });
 
     const response = completion.choices[0]?.message?.content || "No response generated.";
-
-    console.log("Groq response:", response);
 
     return NextResponse.json({ message: response });
   } catch (error: unknown) {
