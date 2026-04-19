@@ -35,7 +35,7 @@ export default function FooterCTA() {
           <Zap className="w-4 h-4 text-[#FF0033]" />
           <span>HashMind AI</span>
         </div>
-        <span>© 2026 HashMind AI. Built for Club HashCash players.</span>
+        <span>© 2026 HashGenius. Built for Club HashCash players.</span>
       </div>
     </section>
   );
