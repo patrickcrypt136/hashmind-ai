@@ -12,7 +12,7 @@ console.log("Request body keys:", Object.keys(body));
 console.log("GROQ_API_KEY exists:", !!process.env.GROQ_API_KEY);
 const { message, history, walletData } = body;
 
-    const SYSTEM_PROMPT = `You are HashMind AI, an expert strategy assistant for Club HashCash players.
+    const SYSTEM_PROMPT = `You are HashGenius, an expert strategy assistant for Club HashCash players.
 You help players maximize their mining rewards, referrals, upgrades, and ROI.
 
 Current player data:

@@ -72,8 +72,8 @@ export default function ChatWindow() {
       id: "1",
       role: "assistant",
       content: isConnected
-        ? `Hey! I'm HashMind AI. I can see your wallet has ${realBalance.toFixed(2)} hCASH. I'm ready to help you maximize your mining strategy. What would you like to optimize?`
-        : "Hey! I'm HashMind AI. Connect your wallet so I can give you personalized mining strategy advice. What would you like to know?",
+        ? `Hey! I'm HashGenius AI. I can see your wallet has ${realBalance.toFixed(2)} hCASH. I'm ready to help you maximize your mining strategy. What would you like to optimize?`
+        : "Hey! I'm HashGenius AI. Connect your wallet so I can give you personalized mining strategy advice. What would you like to know?",
       timestamp: new Date(),
     },
   ]);
@@ -156,7 +156,7 @@ export default function ChatWindow() {
             <Zap className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="font-semibold text-white text-sm">HashMind AI</div>
+            <div className="font-semibold text-white text-sm">HashGenius AI</div>
             <div className="flex items-center gap-1 text-xs text-green-400">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
               Online — Groq LLaMA 3
